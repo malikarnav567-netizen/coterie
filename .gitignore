@@ -31,3 +31,7 @@ dev.db-journal
 
 # freebuff workspace marker
 /.freebuff
+.vercel
+.env*
+
+/.vercel

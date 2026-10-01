@@ -1,0 +1,7 @@
+.env*
+.tools
+.vercel
+.freebuff
+.dev.log
+.dev.pid
+tsconfig.tsbuildinfo

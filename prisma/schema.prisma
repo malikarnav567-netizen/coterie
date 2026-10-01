@@ -1,0 +1,350 @@
+// Veritas — data model.
+// Hosted on Supabase Postgres: DATABASE_URL goes through the transaction
+// pooler (pgbouncer) for the running app; DIRECT_URL (session pooler) is used
+// by the Prisma CLI for schema pushes. Enum-like fields are strings validated
+// with Zod in the service layer; on Postgres these can later become real
+// enums without changing application code.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Campus {
+  id           String   @id @default(cuid())
+  name         String
+  emailDomains String // JSON array of strings, e.g. ["demo.edu"]
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  users        User[]
+}
+
+model User {
+  id              String    @id @default(cuid())
+  campusId        String
+  campus          Campus    @relation(fields: [campusId], references: [id])
+  displayName     String
+  email           String    @unique
+  emailVerified   DateTime? // set by the Auth.js email (magic-link) flow
+  passwordHash    String? // null when the account only uses magic links
+  identityVerified Boolean  @default(false)
+  accessTier      String    @default("PUBLIC") // PUBLIC | CREATIVE
+  creativeLevel   String? // AMATEUR | REVIEWER | TRUSTED | MENTOR_CANDIDATE | MENTOR (null while PUBLIC)
+  isAdmin         Boolean   @default(false)
+  status          String    @default("ACTIVE") // ACTIVE | SUSPENDED
+  createdAt       DateTime  @default(now())
+
+  samples            SampleSubmission[]
+  posts              Post[]
+  likes              PostLike[]
+  comments           PostComment[]
+  reviewsWritten     Review[]           @relation("ReviewerReviews")
+  reviewsReceived    Review[]           @relation("AuthorReviews")
+  ratingsGiven       ReviewRating[]     @relation("AuthorRatings")
+  stats              ReviewerStats?
+  progressionEvents  ProgressionEvent[]
+  mentorReadNotes    MentorReadNote[]   @relation("MentorCandidateNotes")
+  mentorReadDecided  MentorReadNote[]   @relation("MentorAdminNotes")
+  badges             Badge[]
+  eventsHosted       Event[]
+  eventEntries       EventEntry[]
+  communityPosts     CommunityPost[]
+  communityComments  CommunityComment[]
+  reportsFiled       Report[]           @relation("ReporterReports")
+  reportsResolved    Report[]           @relation("ResolverReports")
+  moderationActions  ModerationAction[]
+  notifications      Notification[]
+  ratingsOnOwnReviews ReviewRating[]    @relation("ReviewerRated")
+
+  @@index([campusId])
+}
+
+// One-time codes for email verification and passwordless sign-in. A request
+// stores a hash of the 6-digit code plus the sending address context; the
+// newest row per identifier wins.
+model EmailOtp {
+  id          String   @id @default(cuid())
+  identifier  String // the college email the code was sent to
+  codeHash    String // sha256(code + secret) — the code itself is never stored
+  purpose     String @default("SIGNIN") // SIGNIN | VERIFY_EMAIL
+  sentTo      String // dev transport logs here; a real mailer would log delivery
+  attempts    Int      @default(0)
+  consumedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([identifier, purpose])
+  @@index([expiresAt])
+}
+
+model SampleSubmission {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  form         String // POETRY | PROSE
+  body         String
+  attemptNo    Int       @default(1)
+  status       String    @default("SUBMITTED") // SUBMITTED | IN_REVIEW | ACCEPTED | REJECTED
+  feedbackText String?
+  decidedBy    String?
+  decidedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Post {
+  id              String    @id @default(cuid())
+  authorId        String
+  author          User      @relation(fields: [authorId], references: [id])
+  title           String
+  discipline      String    @default("writing") // future expansion
+  form            String // POETRY | PROSE
+  genre           String
+  body            String
+  intentLine      String?
+  status          String    @default("PUBLISHED") // PUBLISHED | HIDDEN
+  reviewCount     Int       @default(0)
+  firstReviewedAt DateTime?
+  createdAt       DateTime  @default(now())
+
+  likes    PostLike[]
+  comments PostComment[]
+  reviews  Review[]
+  entries  EventEntry[]
+
+  @@index([status, createdAt])
+  @@index([authorId])
+}
+
+model PostLike {
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model Review {
+  id             String    @id @default(cuid())
+  postId         String
+  post           Post      @relation(fields: [postId], references: [id])
+  reviewerId     String
+  reviewer       User      @relation("ReviewerReviews", fields: [reviewerId], references: [id])
+  authorId       String // denormalised post author, kept as a real FK for integrity
+  author         User      @relation("AuthorReviews", fields: [authorId], references: [id])
+  whatWorked     String
+  whatDidNot     String
+  oneSuggestion  String
+  readerResponse String?
+  status         String    @default("PUBLISHED") // PUBLISHED | HIDDEN
+  ratedAt        DateTime? // set on first rating; the review is locked afterwards
+  createdAt      DateTime  @default(now())
+
+  rating ReviewRating?
+
+  @@unique([postId, reviewerId])
+  @@index([reviewerId])
+  @@index([authorId])
+}
+
+model ReviewRating {
+  id            String   @id @default(cuid())
+  reviewId      String   @unique
+  review        Review   @relation(fields: [reviewId], references: [id])
+  raterId       String
+  rater         User     @relation("AuthorRatings", fields: [raterId], references: [id])
+  reviewOwner   User     @relation("ReviewerRated", fields: [reviewOwnerId], references: [id])
+  reviewOwnerId String // denormalised Review.reviewerId so the reviewer's stats can be recomputed in one query
+  verdict       String // USEFUL | SOMEWHAT | NO
+  reasonTagCode String
+  weight        Float    @default(1) // rater weight at time of rating
+  createdAt     DateTime @default(now())
+
+  @@index([raterId])
+}
+
+model ReasonTag {
+  code     String @id
+  label    String
+  polarity String // positive | negative
+}
+
+model ReviewerStats {
+  userId              String   @id
+  user                User     @relation(fields: [userId], references: [id])
+  reviewsWritten      Int      @default(0)
+  usefulCount         Float    @default(0) // weighted, pair-capped
+  distinctUsefulRaters Int     @default(0)
+  spotCheck           Boolean  @default(false) // surfaced to admins at the mentor threshold
+  lastRecomputedAt    DateTime @default(now())
+}
+
+model ProgressionEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  fromLevel String?
+  toLevel   String
+  reason    String
+  decidedBy String // "system" or admin id
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model MentorReadNote {
+  id          String   @id @default(cuid())
+  candidateId String
+  candidate   User     @relation("MentorCandidateNotes", fields: [candidateId], references: [id])
+  adminId     String
+  admin       User     @relation("MentorAdminNotes", fields: [adminId], references: [id])
+  decision    String // APPROVED | DECLINED | PENDING
+  notes       String
+  createdAt   DateTime @default(now())
+
+  @@index([candidateId])
+}
+
+model Badge {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String // REVIEWER | TRUSTED | MENTOR
+  awardedAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  type        String // PROMPT | ROAST | WORKSHOP
+  title       String
+  description String
+  rules       String?
+  startsAt    DateTime
+  endsAt      DateTime
+  minLevel    String    @default("PUBLIC") // minimum creativeLevel to sign up
+  capacity    Int? // workshops only
+  hostId      String
+  host        User      @relation(fields: [hostId], references: [id])
+  discipline  String    @default("writing")
+  state       String    @default("SCHEDULED") // SCHEDULED | SIGNUP_OPEN | LIVE | CLOSED | RESULTS
+  createdAt   DateTime  @default(now())
+
+  entries EventEntry[]
+
+  @@index([state, startsAt])
+}
+
+model EventEntry {
+  id        String    @id @default(cuid())
+  eventId   String
+  event     Event     @relation(fields: [eventId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  postId    String?
+  post      Post?     @relation(fields: [postId], references: [id])
+  status    String    @default("SIGNED_UP") // SIGNED_UP | SUBMITTED | WITHDRAWN
+  createdAt DateTime  @default(now())
+
+  @@unique([eventId, userId])
+}
+
+// The community space shares only User and Report with the critique domain.
+model CommunityPost {
+  id        String   @id @default(cuid())
+  kind      String // BANTER | CONFESSION | GENERAL
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  status    String   @default("PUBLISHED") // PUBLISHED | HIDDEN
+  createdAt DateTime @default(now())
+
+  comments CommunityComment[]
+
+  @@index([kind, createdAt])
+}
+
+model CommunityComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  status    String   @default("PUBLISHED")
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model Report {
+  id         String    @id @default(cuid())
+  reporterId String
+  reporter   User      @relation("ReporterReports", fields: [reporterId], references: [id])
+  targetType String // POST | REVIEW | COMMUNITY_POST | COMMUNITY_COMMENT
+  targetId   String
+  snapshot   String // JSON snapshot of the reported content
+  reason     String
+  status     String    @default("OPEN") // OPEN | RESOLVED
+  resolvedBy String?
+  resolver   User?     @relation("ResolverReports", fields: [resolvedBy], references: [id])
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  actions ModerationAction[]
+
+  @@index([status])
+}
+
+model ModerationAction {
+  id               String   @id @default(cuid())
+  reportId         String
+  report           Report   @relation(fields: [reportId], references: [id])
+  adminId          String
+  admin            User     @relation(fields: [adminId], references: [id])
+  action           String // KEEP | HIDE | ASK_EDIT
+  note             String
+  wouldHaveBlocked Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  type      String // SAMPLE_DECISION | NEW_REVIEW | REVIEW_RATED | PROMOTION | EVENT_REMINDER | NEW_POST_IN_QUEUE | MODERATION
+  payload   String // JSON
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+}
+
+model Config {
+  key       String   @id
+  value     String // stored as string; typed accessors parse
+  updatedAt DateTime @default(now()) @updatedAt
+}

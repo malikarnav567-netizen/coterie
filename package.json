@@ -5,6 +5,7 @@
   "description": "Veritas — a campus-gated peer-critique commons for writers.",
   "scripts": {
     "dev": "next dev",
+    "postinstall": "prisma generate",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

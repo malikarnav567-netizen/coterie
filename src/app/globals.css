@@ -47,6 +47,12 @@
 
   --tracking-label: 0.22em;
 
+  /* The landing's desktop composition (nav row, hero arc, three-up cards, the
+     wide banner) begins here rather than at Tailwind's default 1280px. A phone
+     switched to "desktop mode" reports a ~980px viewport, so this is what makes
+     that request resolve to the true desktop page instead of a half-way layout. */
+  --breakpoint-wide: 900px;
+
   --shadow-seal: inset 0 0 0 2px oklch(0.65 0.09 74 / 45%), 0 7px 18px oklch(0.05 0.01 30 / 55%);
   --shadow-seal-hover: inset 0 0 0 2px oklch(0.75 0.1 75 / 55%), 0 10px 26px oklch(0.05 0.01 30 / 70%);
 }
@@ -408,7 +414,7 @@ button, a {
 /* ---------- landing rebuild: fluted marginalia columns around the cards ---------- */
 .space-layout { display: grid; gap: 1.5rem; }
 .space-aside { display: none; }
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
   .space-layout { grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem; align-items: stretch; }
   .space-aside {
     display: flex;
@@ -443,4 +449,72 @@ button, a {
   }
   .reveal { animation: none; }
   .glow-hover, .glow-hover:hover { transition: none; box-shadow: none; }
+}
+
+/* ---------- landing: cards & banner ---------- */
+
+/* The three cards paint a fixed-ratio "blank" whose lower half carries the
+   text. The artwork scales with the card but the type used to be a fixed rem
+   size, so on a phone the block grew relatively larger and climbed up over the
+   illustration. Sizing it in container units keeps the text-to-artwork fit
+   identical at every card width — phone, tablet, or desktop. */
+.lux-card {
+  container-type: inline-size;
+}
+
+.lux-card-body {
+  padding-inline: 7.8cqw;
+  padding-bottom: 7cqw;
+}
+
+.lux-card-title {
+  font-size: clamp(1.15rem, 6.9cqw, 1.95rem);
+  letter-spacing: 0.06em;
+}
+
+.lux-card-rule {
+  margin-block: 3.9cqw;
+  font-size: clamp(0.5rem, 2cqw, 0.62rem);
+}
+
+.lux-card-rule > span {
+  width: 9.5cqw;
+}
+
+.lux-card-copy {
+  max-width: 64cqw;
+  font-size: clamp(0.92rem, 4.45cqw, 1.25rem);
+  line-height: 1.5;
+}
+
+.lux-card-tags {
+  max-width: 72cqw;
+  margin-top: 5.5cqw;
+  font-family: var(--font-label);
+  font-size: clamp(0.55rem, 2.2cqw, 0.74rem);
+  letter-spacing: 0.24em;
+  line-height: 1.8;
+  text-transform: uppercase;
+}
+
+/* The banner is a wide parchment ribbon with torn, partly transparent edges.
+   Stretched down a tall phone column it smeared into a black-patched band, so
+   phones get a properly framed parchment letter instead; the ribbon itself
+   returns at the desktop breakpoint, where its aspect matches its box. */
+.lux-banner {
+  background-image:
+    radial-gradient(120% 100% at 18% 0%, rgba(255, 247, 229, 0.55), transparent 62%),
+    linear-gradient(180deg, #d8bf9e 0%, #cbb08a 55%, #bfa27b 100%);
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(47, 39, 33, 0.5),
+    inset 0 0 0 6px #cbb08a,
+    inset 0 0 0 7px rgba(192, 168, 124, 0.7);
+}
+
+@media (min-width: 900px) {
+  .lux-banner {
+    background-image: none;
+    box-shadow: none;
+  }
 }

@@ -58,7 +58,7 @@ function StepArrow() {
   return (
     <span
       aria-hidden="true"
-      className="flex rotate-90 items-center text-lux-ink/55 xl:rotate-0 xl:self-center"
+      className="flex rotate-90 items-center text-lux-ink/55 wide:rotate-0 wide:self-center"
     >
       <span className="h-px w-7 bg-current" />
       <span className="-ml-[3px] mt-[1px] size-1.5 rotate-45 border-r border-t border-current" />
@@ -81,16 +81,16 @@ export function Landing() {
 
       {/* Padding (not margin) so the header offset can't collapse through and
           drag the gold frame down with the content. */}
-      <div className="relative pt-14 lg:pt-16">
+      <div className="relative pt-14 wide:pt-16">
         {/* ── 1 · Nav ─────────────────────────────────────────────────── */}
-        <header className="mx-6 border-b border-lux-gold/70 pb-5 sm:mx-10 lg:mx-24">
+        <header className="mx-6 border-b border-lux-gold/70 pb-5 sm:mx-10 wide:mx-24">
           <div className="flex items-center gap-5">
             <a href="#top" className="flex items-center gap-3" aria-label="Coterie home">
               <span aria-hidden="true" className="text-xl text-lux-gold">✦</span>
               <span className="display-caps text-2xl text-lux-ivory sm:text-[1.7rem]">Coterie</span>
             </a>
 
-            <nav className="ml-auto hidden items-center gap-9 whitespace-nowrap xl:flex" aria-label="Primary">
+            <nav className="ml-auto hidden items-center gap-9 whitespace-nowrap wide:flex" aria-label="Primary">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
@@ -102,16 +102,16 @@ export function Landing() {
               ))}
             </nav>
 
-            <div className="ml-auto flex items-center gap-4 lg:ml-10">
+            <div className="ml-auto flex items-center gap-4 wide:ml-10">
               <Link
                 href="/enter"
-                className="label-caps hidden items-center gap-2 border border-lux-gold/70 px-5 py-2.5 text-[0.6rem] text-lux-ivory transition-colors duration-300 hover:bg-lux-gold/10 sm:inline-flex"
+                className="label-caps hidden min-h-11 touch-manipulation items-center gap-2 border border-lux-gold/70 px-5 py-2.5 text-[0.6rem] text-lux-ivory transition-colors duration-300 hover:bg-lux-gold/10 sm:inline-flex"
               >
                 Enter the Archive <span aria-hidden="true">→</span>
               </Link>
               <button
                 type="button"
-                className="grid size-10 place-items-center text-lux-gold xl:hidden"
+                className="grid size-11 touch-manipulation place-items-center text-lux-gold wide:hidden"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label={menuOpen ? "Close menu" : "Open menu"}
                 aria-expanded={menuOpen}
@@ -122,12 +122,12 @@ export function Landing() {
           </div>
 
           {menuOpen && (
-            <nav className="mt-5 flex flex-col border-t border-lux-gold/40 pt-3 xl:hidden" aria-label="Mobile">
+            <nav className="mt-5 flex flex-col border-t border-lux-gold/40 pt-3 wide:hidden" aria-label="Mobile">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}
-                  className="label-caps border-b border-lux-gold/20 py-3.5 text-[0.65rem] text-parchment-muted transition-colors duration-300 hover:text-lux-gold-soft"
+                  className="label-caps flex min-h-11 touch-manipulation items-center border-b border-lux-gold/20 py-3.5 text-[0.7rem] text-parchment-muted transition-colors duration-300 hover:text-lux-gold-soft"
                   onClick={() => setMenuOpen(false)}
                 >
                   {link.label}
@@ -135,7 +135,7 @@ export function Landing() {
               ))}
               <Link
                 href="/enter"
-                className="label-caps mt-5 inline-flex items-center justify-center gap-2 border border-lux-gold/70 px-5 py-3 text-[0.62rem] text-lux-ivory transition-colors duration-300 hover:bg-lux-gold/10"
+                className="label-caps mt-5 inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 border border-lux-gold/70 px-5 py-3 text-[0.62rem] text-lux-ivory transition-colors duration-300 hover:bg-lux-gold/10"
                 onClick={() => setMenuOpen(false)}
               >
                 Enter the Archive <span aria-hidden="true">→</span>
@@ -145,8 +145,8 @@ export function Landing() {
         </header>
 
         {/* ── 2 · Hero ────────────────────────────────────────────────── */}
-        <section id="top" className="relative mx-5 mt-12 sm:mx-9 lg:mx-16">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-6">
+        <section id="top" className="relative mx-5 mt-12 sm:mx-9 wide:mx-16">
+          <div className="grid gap-10 wide:grid-cols-[minmax(0,1fr)_auto] wide:gap-6">
             <div className="pt-1">
               <p aria-hidden="true" className="label-caps text-[0.55rem] leading-[2] text-lux-gold">
                 Coterie<br />Lux<br />Mea<br />
@@ -181,14 +181,14 @@ export function Landing() {
               </div>
             </div>
 
-            <div className="relative hidden justify-self-end lg:block">
+            <div className="relative hidden justify-self-end wide:block">
               <Image
                 src="/ref-assets/gold-branch-arc.png"
                 alt="Gilded branch arcing across a full moon"
                 width={460}
                 height={760}
                 priority
-                className="w-[330px] xl:w-[400px]"
+                className="w-[330px] wide:w-[400px]"
               />
             </div>
           </div>
@@ -214,7 +214,7 @@ export function Landing() {
         </section>
 
         {/* ── 3 · A space to — Share. Read. Build. ───────────────────── */}
-        <section id="commons" className="relative mx-5 border-t border-lux-gold/50 py-16 sm:mx-9 lg:mx-16 lg:py-20">
+        <section id="commons" className="relative mx-5 border-t border-lux-gold/50 py-16 sm:mx-9 wide:mx-16 wide:py-20">
           <div className="text-center">
             <div className="section-kicker"><span />A space to<span /></div>
             <h2 className="mt-4 font-[family-name:var(--font-body)] text-5xl italic text-lux-ivory sm:text-6xl">Share. Read. Build.</h2>
@@ -230,11 +230,12 @@ export function Landing() {
             </aside>
 
             {/* ── 4 · Cards ─────────────────────────────────────────── */}
-            {/* Three-up only from xl down-up widths up; below that the cards
-                stack so the text block always fits the lower half. */}
-            <div className="grid gap-6 xl:grid-cols-3">
+            {/* Three-up once the desktop composition starts; below that the cards
+                stack, and the overlay type scales in container units so the fit
+                stays identical at any card width. */}
+            <div className="grid gap-6 wide:grid-cols-3">
               {cards.map((card) => (
-                <article key={card.id} id={card.id} className="relative aspect-[0.71] overflow-hidden">
+                <article key={card.id} id={card.id} className="lux-card relative aspect-[0.71] overflow-hidden">
                   <Image
                     src={card.image}
                     alt=""
@@ -244,16 +245,17 @@ export function Landing() {
                     aria-hidden="true"
                     className="absolute inset-0 h-full w-full object-fill"
                   />
-                  {/* Overlay text confined to the lower half (never covers the illustration). */}
-                  <div className="absolute inset-x-0 bottom-0 top-1/2 flex flex-col items-center justify-end px-7 pb-7 text-center text-lux-ink">
-                    <h3 className="font-[family-name:var(--font-body)] text-[1.55rem] font-medium uppercase leading-none tracking-[0.06em]">
+                  {/* Overlay text confined to the lower half (never covers the
+                      illustration); its scale rides the card width via cqw. */}
+                  <div className="lux-card-body absolute inset-x-0 bottom-0 top-1/2 flex flex-col items-center justify-end text-center text-lux-ink">
+                    <h3 className="lux-card-title font-[family-name:var(--font-body)] font-medium uppercase leading-none">
                       {card.title}
                     </h3>
-                    <span className="my-3.5 flex items-center gap-2 text-[0.55rem]" aria-hidden="true">
-                      <span className="h-px w-9 bg-lux-ink/35" />✦<span className="h-px w-9 bg-lux-ink/35" />
+                    <span className="lux-card-rule flex items-center gap-2" aria-hidden="true">
+                      <span className="h-px bg-lux-ink/35" />✦<span className="h-px bg-lux-ink/35" />
                     </span>
-                    <p className="max-w-[230px] font-[family-name:var(--font-body)] text-[1rem] leading-6">{card.copy}</p>
-                    <p className="label-caps mt-5 max-w-[260px] text-[0.5rem] leading-[1.8] text-lux-ink/75">
+                    <p className="lux-card-copy font-[family-name:var(--font-body)]">{card.copy}</p>
+                    <p className="lux-card-tags text-lux-ink/75">
                       {card.tags.map((tag, i) => (
                         <span key={tag}>
                           {tag}
@@ -281,7 +283,7 @@ export function Landing() {
         </section>
 
         {/* ── 5 · Banner ──────────────────────────────────────────────── */}
-        <section id="manifesto" className="relative mx-3 mb-16 sm:mx-5 lg:mx-8">
+        <section id="manifesto" className="relative mx-3 mb-16 sm:mx-5 wide:mx-8">
           <Image
             src="/ref-assets/banner-blank.png"
             alt=""
@@ -289,9 +291,9 @@ export function Landing() {
             height={510}
             loading="lazy"
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 hidden h-full w-full object-cover wide:block"
           />
-          <div className="relative z-10 flex flex-col gap-10 px-7 py-12 text-lux-ink sm:px-10 sm:py-14 xl:grid xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.4fr)] xl:items-center xl:gap-8 xl:py-14 xl:pl-[22%] xl:pr-[4%]">
+          <div className="lux-banner relative z-10 flex flex-col gap-10 px-8 py-14 text-lux-ink sm:px-12 sm:py-16 wide:grid wide:grid-cols-[minmax(0,0.92fr)_minmax(0,1.4fr)] wide:items-center wide:gap-8 wide:py-14 wide:pl-[22%] wide:pr-[4%]">
             <div className="max-w-md">
               <h2 className="display-caps text-[clamp(1.5rem,2.6vw,2.1rem)] leading-tight">
                 Grow through<br />what you give.
@@ -305,10 +307,10 @@ export function Landing() {
               </p>
             </div>
 
-            <ol className="mt-2 flex flex-col items-center gap-7 xl:mt-0 xl:flex-row xl:items-center xl:justify-between xl:gap-2">
+            <ol className="mt-2 flex flex-col items-center gap-7 wide:mt-0 wide:flex-row wide:items-center wide:justify-between wide:gap-2">
               {steps.map((step, index) => (
-                <li key={step.title} className="flex flex-col items-center gap-7 xl:contents">
-                  <div className="flex w-full max-w-56 flex-col items-center text-center xl:w-36">
+                <li key={step.title} className="flex flex-col items-center gap-7 wide:contents">
+                  <div className="flex w-full max-w-56 flex-col items-center text-center wide:w-36">
                     <Image src={step.icon} alt="" width={step.size} height={step.size} loading="lazy" className="w-14" />
                     <h3 className="label-caps mt-3 text-[0.6rem]">{step.title}</h3>
                     <p className="mt-1.5 max-w-[10rem] font-[family-name:var(--font-body)] text-sm italic leading-5">{step.copy}</p>
@@ -321,7 +323,7 @@ export function Landing() {
         </section>
 
         {/* ── 6 · Footer ──────────────────────────────────────────────── */}
-        <footer className="mx-6 pb-14 sm:mx-10 lg:mx-24">
+        <footer className="mx-6 pb-14 sm:mx-10 wide:mx-24">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
             <span className="label-caps text-[0.55rem] text-lux-gold">Coterie / Est. MMXXVI</span>
             <span aria-hidden="true" className="hidden h-px min-w-16 flex-1 bg-lux-gold/50 sm:block" />

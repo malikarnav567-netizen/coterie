@@ -9,7 +9,7 @@ import { submitSample, decideSample } from "@/modules/samples/service";
 import { createCommunityPost, listCommunity, canAccessCommunity } from "@/modules/community/service";
 import { createReport } from "@/modules/moderation/service";
 import { requestOtp, verifyOtp } from "@/modules/identity/otp";
-import { ensureCollegeUser } from "@/modules/identity/service";
+import { ensureCollegeUser, setMemberStatus } from "@/modules/identity/service";
 
 /**
  * One shared database, one ordered suite: state flows deliberately from the
@@ -335,11 +335,29 @@ describe("email otp", () => {
     await expect(ensureCollegeUser(email)).rejects.toMatchObject({ status: 403 });
   });
 
-  it("enrols a college email at the exchange and returns the same member after", async () => {
+  it("seats a new college inbox as verified but PENDING, and returns the same member after", async () => {
     const first = await ensureCollegeUser("lettered@test.edu");
     expect(first.identityVerified).toBe(true);
     expect(first.accessTier).toBe("PUBLIC");
+    expect(first.status).toBe("PENDING");
     const again = await ensureCollegeUser("lettered@test.edu");
     expect(again.id).toBe(first.id);
+    expect(again.status).toBe("PENDING");
+  });
+
+  it("lets an admin admit a pending member, and refuses a member changing their own standing", async () => {
+    const held = await ensureCollegeUser("held@test.edu");
+    expect(held.status).toBe("PENDING");
+
+    // nobody lifts their own hold
+    await expect(
+      setMemberStatus(asSession(held as never), held.id, "ACTIVE"),
+    ).rejects.toMatchObject({ status: 400 });
+
+    const admitted = await setMemberStatus(asSession(u.admin), held.id, "ACTIVE");
+    expect(admitted.status).toBe("ACTIVE");
+
+    const denied = await setMemberStatus(asSession(u.admin), held.id, "SUSPENDED");
+    expect(denied.status).toBe("SUSPENDED");
   });
 });

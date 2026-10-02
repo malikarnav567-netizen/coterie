@@ -40,6 +40,9 @@ export const authConfig: NextAuthConfig = {
         // refuses every other domain.
         if (!email || !consumeTicket(email, ticket)) return null;
         const user = await ensureCollegeUser(email);
+        // The verify route already turns away PENDING/SUSPENDED members; this
+        // is the second lock on the same door.
+        if (user.status !== "ACTIVE") return null;
         return { id: user.id, email: user.email, name: user.displayName } as any;
       },
     }),
